@@ -1,4 +1,5 @@
-import * as Crypto from "expo-crypto";
+// import * as Crypto from "expo-crypto";
+import './expo-cryto-shim.js';
 import { StyleSheet, Text, View } from "react-native";
 import Transactions from "./components/Transactions";
 import WalletConnect from "./screens/WalletConnect";
