@@ -9,7 +9,7 @@ import {
   Button,
   Image,
   ToastAndroid,
-  StatusBar
+  StatusBar,
 } from "react-native";
 import { Camera } from "expo-camera";
 import { Video } from "expo-av";
@@ -153,26 +153,25 @@ export default function FaceScan() {
   );
   const renderCaptureControl = () => (
     <View style={styles.control}>
-      <TouchableOpacity
+      {/* <TouchableOpacity
         disabled={!isCameraReady}
         onPress={switchCamera}
         style={styles.flip}
       >
         <Text style={styles.text}>{"Flip"}</Text>
-        {/* <Feather name={"rotate-cw"} size={30} /> */}
-      </TouchableOpacity>
+        <Feather name={"rotate-cw"} size={30} />
+      </TouchableOpacity> */}
       <TouchableOpacity
         style={styles.btn}
         onPress={async () => {
           console.log(isRegister);
-          ToastAndroid.show('Switch expression', ToastAndroid.SHORT);
+          ToastAndroid.show("Switch expression", ToastAndroid.SHORT);
           if (isRegister) {
             await takeRegisterPictures();
             // setTimeout(() => {}, 1000);
             // setCamera(true);
             await cameraRef.current.resumePreview();
 
-            
             setIsPreview(false);
             setVideoSource(null);
 
@@ -201,10 +200,13 @@ export default function FaceScan() {
         style={styles.btn}
         onPress={() => {
           sendImage();
-          console.log("clicked");
         }}
       >
-        <Text style={{ color: "white", fontSize: 20 }}>Authenticate</Text>
+        {isRegister ? (
+          <Text style={{ color: "white", fontSize: 20 }}>Finish</Text>
+        ) : (
+          <Text style={{ color: "white", fontSize: 20 }}>Authenticate</Text>
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -229,10 +231,14 @@ export default function FaceScan() {
               console.log("cammera error", error);
             }}
           />
-          {counter <= 5 ? <View style={styles.overlay}>
-            <Text style={styles.countText}>{counter}</Text>
-          </View> : <View></View>}
-          
+          {counter <= 5 ? (
+            <View style={styles.overlay}>
+              <Text style={styles.countText}>{counter}</Text>
+            </View>
+          ) : (
+            <View></View>
+          )}
+
           {/* {isVideoRecording && renderVideoRecordIndicator()} */}
           {/* {videoSource && renderVideoPlayer()} */}
           {isPreview && renderCancelPreviewButton()}
@@ -346,10 +352,10 @@ const styles = StyleSheet.create({
   countText: {
     fontSize: 120,
     opacity: 0.7,
-    color: 'white',
-    fontWeight: 'bold',
-    alignContent: 'flex-start',
-    textAlign: 'right',
+    color: "white",
+    fontWeight: "bold",
+    alignContent: "flex-start",
+    textAlign: "right",
     marginTop: 20,
     marginRight: 15,
   },
