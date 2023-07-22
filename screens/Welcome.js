@@ -1,17 +1,17 @@
-import React from "react";
+import React, { startTransition } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
 
 export default function Welcome({ navigation }) {
   return (
     <View style={styles.container}>
-      <View style={{ width: 200, height: 200, backgroundColor: "#D9D9D920" }}>
-        {/* <Image
-          style={{ width: 100, height: 100 }}
+      <View style={{ width: 200, height: 200, backgroundColor: "transparent" }}>
+        <Image
+          style={{ width: 200, height: 200 }}
           source={require("../assets/logo.png")}
-        /> */}
+        />
       </View>
       <View>
-        <Text style={styles.header}>Welcome to zkMask</Text>
+        <Text style={styles.header}>Welcome to zkMask </Text>        
       </View>
       <View>
         <TouchableOpacity
@@ -20,7 +20,9 @@ export default function Welcome({ navigation }) {
         >
           <Text
             style={{
-              color: "#fff",
+              color: "#FFF",
+              fontSize: 18,
+              fontWeight: "bold"
             }}
           >
             Register

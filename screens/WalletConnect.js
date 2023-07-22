@@ -29,11 +29,11 @@ export default function WalletConnect({ navigation }) {0.
 
   return (    
     <View style={styles.container}>
-      <View style={{ width: 200, height: 200, backgroundColor: "#D9D9D920" }}>
-        {/* <Image
-          style={{ width: 100, height: 100 }}
+      <View style={{ width: 200, height: 200, backgroundColor: "transparent" }}>
+        <Image
+          style={{ width: 200, height: 200 }}
           source={require("../assets/logo.png")}
-        /> */}
+        />
       </View>
       <View>
         <Text style={styles.header}>Connect with your Web3 Wallet</Text>
@@ -42,7 +42,7 @@ export default function WalletConnect({ navigation }) {0.
         <TouchableOpacity style={styles.metamaskConnectButton}>
           <Text
             style={{
-              color: "#fff",
+              color: "#fff",              
             }}
           >
             Metamask
