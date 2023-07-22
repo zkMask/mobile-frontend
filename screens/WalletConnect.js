@@ -1,8 +1,32 @@
 import React from "react";
 import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
-
+// import { useWalletConnectModal } from "@walletconnect/modal-react-native";
+// const { isOpen, open, close, provider, isConnected, address } = useWalletConnectModal();
+// import { WalletConnectModal } from '@walletconnect/modal-react-native';
 export default function WalletConnect({ navigation }) {
-  return (
+  // const projectId = '5a7416f217897c5d3360766ad3514e5b';
+// // "@walletconnect/react-native-dapp": "^1.8.0",
+// const providerMetadata = {
+//   name: 'zkMask',
+//   description: 'zk 2fa',
+//   url: '',
+//   icons: [''],
+//   redirect: {
+//     native: '',
+//     universal: ''
+//   }
+// };
+
+  // const { open, isConnected, address, provider } = useWalletConnectModal();
+
+  // // Function to handle the
+  // const handleButtonPress = async () => {
+  //   if (isConnected) {
+  //     return provider?.disconnect();
+  //   }
+  //   return open();
+  // };
+  return (    
     <View style={styles.container}>
       <View style={{ width: 200, height: 200, backgroundColor: "#D9D9D920" }}>
         {/* <Image
