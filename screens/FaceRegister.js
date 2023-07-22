@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
 
-export default function FaceRegister({navigation}) {
+export default function FaceRegister({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={{ width: 200, height: 200, backgroundColor: "#D9D9D920" }}>
@@ -16,7 +16,7 @@ export default function FaceRegister({navigation}) {
       <View>
         <TouchableOpacity
           style={styles.metamaskConnectButton}
-          onPress={() => navigation.navigate("FaceScan")}
+          onPress={() => navigation.navigate("FaceScan", { isRegister: true })}
         >
           <Text
             style={{

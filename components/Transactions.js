@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
 import PendingCard from "./PendingCard";
 import { ScrollView, Modal } from "react-native";
 import HistoryCard from "./HistoryCard";
+import axios from "axios";
 
-export default function Transactions() {
+export default function Transactions({ navigation }) {
   const [activeTab, setActiveTab] = useState("Pending");
   const [modalVisible, setModalVisible] = useState(false);
+  const [historyData, setHistoryData] = useState([]);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -16,6 +18,28 @@ export default function Transactions() {
   const handleModal = () => {
     setModalVisible(!modalVisible);
   };
+
+  //   //fetch data for the pending tab
+  //   useEffect(() => {
+  //     if (activeTab !== "Pending") return;
+  //     async function fetchData() {
+  //       await axios.get("http://localhost:3000/transactions").then((res) => {
+  //         console.log(res.data);
+  //       });
+  //     }
+  //     fetchData();
+  //   }, [activeTab]);
+
+  //   //fetch data for the history tab
+  //   useEffect(() => {
+  //     if (activeTab !== "History") return;
+  //     async function fetchData() {
+  //       await axios.get("http://localhost:3000/transactions").then((res) => {
+  //         console.log(res.data);
+  //       });
+  //     }
+  //     fetchData();
+  //   }, [activeTab]);
 
   return (
     <View style={styles.container}>
@@ -58,7 +82,15 @@ export default function Transactions() {
             {activeTab === "Pending" ? (
               <PendingCard onConfirm={handleModal} />
             ) : (
-              <HistoryCard />
+              historyData.map((data) => (
+                <HistoryCard
+                  key={data.id}
+                  name={data.name}
+                  description={data.description}
+                  date={data.date}
+                  status={data.status}
+                />
+              ))
             )}
           </View>
         </ScrollView>
@@ -80,7 +112,12 @@ export default function Transactions() {
               style={{ width: 54, height: 54, margin: 35 }}
             />
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.buttonGreen}>
+              <TouchableOpacity
+                style={styles.buttonGreen}
+                onPress={() =>
+                  navigation.navigate("FaceScan", { isRegister: false })
+                }
+              >
                 <Text style={styles.buttonTextGreen}>Scan face to proceed</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.buttonRed} onPress={handleModal}>

@@ -9,15 +9,19 @@ import { createStackNavigator } from "@react-navigation/stack";
 import FaceScan from "./screens/FaceScan";
 
 export default function App() {
+  const isLoggedIn = true;
   const Stack = createStackNavigator();
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Welcome" component={Welcome} />
+        {isLoggedIn ? (
+          <Stack.Screen name="Transactions" component={Transactions} />
+        ) : (
+          <Stack.Screen name="Welcome" component={Welcome} />
+        )}
         <Stack.Screen name="WalletConnect" component={WalletConnect} />
         <Stack.Screen name="FaceRegister" component={FaceRegister} />
         <Stack.Screen name="FaceScan" component={FaceScan} />
-        <Stack.Screen name="Transactions" component={Transactions} />
       </Stack.Navigator>
     </NavigationContainer>
     // <FaceScan />

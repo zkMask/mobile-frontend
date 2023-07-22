@@ -12,12 +12,16 @@ import {
 import { Camera } from "expo-camera";
 import { Video } from "expo-av";
 import axios from "axios";
+import * as crypto from "expo-crypto";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+// import { generatePoseidonHash } from "../utils/ukToHash";
 // import { Feather } from "@expo/vector-icons";
 
 const WINDOW_HEIGHT = Dimensions.get("window").height;
 const closeButtonSize = Math.floor(WINDOW_HEIGHT * 0.032);
 const captureSize = Math.floor(WINDOW_HEIGHT * 0.09);
-export default function FaceScan() {
+export default function FaceScan({ navigation, isRegister = false }) {
+  const isOwner = false;
   const [hasPermission, setHasPermission] = useState(null);
   const [cameraType, setCameraType] = useState(Camera.Constants.Type.front);
   const [isPreview, setIsPreview] = useState(false);
@@ -26,10 +30,31 @@ export default function FaceScan() {
   //   const [isVideoRecording, setIsVideoRecording] = useState(false);
   const [videoSource, setVideoSource] = useState(null);
   const [base64, setBase64] = useState(null);
-  const [isRegister, setIsRegister] = useState(true);
+  //   const [isRegister, setIsRegister] = useState(true);
   const [base64Array, setBase64Array] = useState([]);
   const [counter, setCounter] = useState(0);
   const cameraRef = useRef();
+
+  const generateKey = async () => {
+    //get the current timestamp
+    const timestamp = Date.now();
+    //salt the combination and hash it
+    const hash = await crypto
+      .createHash("sha256")
+      .update(timestamp)
+      .digest("hex");
+
+    // const hash2 = await generatePoseidonHash(hash);
+
+    return hash;
+  };
+
+  //   const generatePoseidonHash = async (key) => {
+  //     const poseidon = await circomlibjs.buildPoseidon();
+  //     const hash = poseidon.F.toString(poseidon([10]));
+  //     return hash;
+  //   };
+
   useEffect(() => {
     (async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
@@ -70,39 +95,72 @@ export default function FaceScan() {
   useEffect(() => {
     console.log("changed");
   }, [base64Array]);
-  const sendImage = async () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-    const day = now.getDate();
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-    const seconds = now.getSeconds();
 
-    const timestamp = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    console.log(timestamp);
+  // Backend Schema:
+  // {
+  //   address: "0x123",
+  // hashOfUniqueKey: "0x123",
+  // photos: ["base64", "base64", "base64", "base64"],
+  // }
+
+  const storeData = async (value) => {
     try {
+      await AsyncStorage.setItem("myUniqueKey", value);
+    } catch (e) {
+      // saving error
+      console.log(e);
+    }
+  };
+
+  const getData = async () => {
+    try {
+      const value = await AsyncStorage.getItem("myUniqueKey");
+      if (value !== null) {
+        console.log(value);
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const sendImage = async () => {
+    try {
+      console.log("1");
+      //get the current timestamp
+      const timestamp = Date.now();
+      const randomNumber = Math.floor(Math.random() * 1000);
+      console.log("random", randomNumber);
+      const arr = randomNumber.toString();
+      console.log(arr);
+      storeData(arr);
+
+      const hashOfUniqueKey = await axios.post(
+        "http://192.168.43.109:4000/api/v1/hash/hash",
+        {
+          uniqueKey: arr,
+        }
+      );
+      console.log(hashOfUniqueKey.data.hash);
+      isOwner ? getData() : console.log("not owner");
       // console.log(base64);
-      // const img = base64.toURL();
-      // console.log(img);
+      const img = base64;
+      console.log(img);
       if (isRegister) {
         const response = await axios.post(
-          "http://10.61.124.139:4000/api/v1/users/signup",
+          "http://192.168.43.109:4000/api/v1/users/signup",
           {
             address: "Ox",
-            timeStamp: timestamp,
+            hashOfUniqueKey: hashOfUniqueKey.data.hash,
             photos: base64Array,
           }
         );
         console.log(response.data);
-        setIsRegister(!isRegister);
+        // setIsRegister(!isRegister);
       } else {
         const response = await axios.post(
-          "http://10.61.124.139:4000/api/v1/users/signup",
+          "http://192.168.43.109:4000/api/v1/recognition/recognize",
           {
-            address: "Ox",
-            timeStamp: timestamp,
-            photos: [base64],
+            image: img,
           }
         );
         console.log(response.data);
@@ -195,9 +253,9 @@ export default function FaceScan() {
     <View style={styles.control}>
       <TouchableOpacity
         style={styles.btn}
-        onPress={() => {
-          sendImage();
-          console.log("clicked");
+        onPress={async () => {
+          await sendImage();
+          navigation.navigate("Transactions");
         }}
       >
         <Text style={{ color: "white", fontSize: 20 }}>Authenticate</Text>
