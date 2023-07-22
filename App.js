@@ -1,4 +1,4 @@
-import { StatusBar } from "expo-status-bar";
+import * as Crypto from "expo-crypto";
 import { StyleSheet, Text, View } from "react-native";
 import Transactions from "./components/Transactions";
 import WalletConnect from "./screens/WalletConnect";
