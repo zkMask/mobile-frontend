@@ -1,4 +1,5 @@
-import { StatusBar } from "expo-status-bar";
+// import * as Crypto from "expo-crypto";
+import "./expo-cryto-shim.js";
 import { StyleSheet, Text, View } from "react-native";
 import Transactions from "./components/Transactions";
 import WalletConnect from "./screens/WalletConnect";
@@ -7,24 +8,21 @@ import FaceRegister from "./screens/FaceRegister";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import FaceScan from "./screens/FaceScan";
+import { useWalletConnectModal } from "@walletconnect/modal-react-native";
 
 export default function App() {
-  const isLoggedIn = true;
+  const { isConnected } = useWalletConnectModal();
   const Stack = createStackNavigator();
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isLoggedIn ? (
-          <Stack.Screen name="Transactions" component={Transactions} />
-        ) : (
-          <Stack.Screen name="Welcome" component={Welcome} />
-        )}
+        <Stack.Screen name="Welcome" component={Welcome} />
         <Stack.Screen name="WalletConnect" component={WalletConnect} />
+        <Stack.Screen name="Transactions" component={Transactions} />
         <Stack.Screen name="FaceRegister" component={FaceRegister} />
         <Stack.Screen name="FaceScan" component={FaceScan} />
       </Stack.Navigator>
     </NavigationContainer>
-    // <FaceScan />
   );
 }
 

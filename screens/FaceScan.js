@@ -8,6 +8,8 @@ import {
   SafeAreaView,
   Button,
   Image,
+  ToastAndroid,
+  StatusBar,
 } from "react-native";
 import { Camera } from "expo-camera";
 import { Video } from "expo-av";
@@ -32,7 +34,7 @@ export default function FaceScan({ navigation, isRegister = false }) {
   const [base64, setBase64] = useState(null);
   //   const [isRegister, setIsRegister] = useState(true);
   const [base64Array, setBase64Array] = useState([]);
-  const [counter, setCounter] = useState(0);
+  const [counter, setCounter] = useState(1);
   const cameraRef = useRef();
 
   const generateKey = async () => {
@@ -209,18 +211,19 @@ export default function FaceScan({ navigation, isRegister = false }) {
   );
   const renderCaptureControl = () => (
     <View style={styles.control}>
-      <TouchableOpacity
+      {/* <TouchableOpacity
         disabled={!isCameraReady}
         onPress={switchCamera}
         style={styles.flip}
       >
         <Text style={styles.text}>{"Flip"}</Text>
-        {/* <Feather name={"rotate-cw"} size={30} /> */}
-      </TouchableOpacity>
+        <Feather name={"rotate-cw"} size={30} />
+      </TouchableOpacity> */}
       <TouchableOpacity
         style={styles.btn}
         onPress={async () => {
           console.log(isRegister);
+          ToastAndroid.show("Switch expression", ToastAndroid.SHORT);
           if (isRegister) {
             await takeRegisterPictures();
             // setTimeout(() => {}, 1000);
@@ -234,7 +237,7 @@ export default function FaceScan({ navigation, isRegister = false }) {
             // }
             setCounter(counter + 1);
             console.log("ddd", isPreview);
-            if (counter >= 4) {
+            if (counter >= 5) {
               await cameraRef.current.pausePreview();
 
               setIsPreview(true);
@@ -258,7 +261,11 @@ export default function FaceScan({ navigation, isRegister = false }) {
           navigation.navigate("Transactions");
         }}
       >
-        <Text style={{ color: "white", fontSize: 20 }}>Authenticate</Text>
+        {isRegister ? (
+          <Text style={{ color: "white", fontSize: 20 }}>Finish</Text>
+        ) : (
+          <Text style={{ color: "white", fontSize: 20 }}>Authenticate</Text>
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -277,12 +284,20 @@ export default function FaceScan({ navigation, isRegister = false }) {
             ref={cameraRef}
             style={styles.camera}
             type={cameraType}
-            flashMode={Camera.Constants.FlashMode.on}
+            flashMode={Camera.Constants.FlashMode.off}
             onCameraReady={onCameraReady}
             onMountError={(error) => {
               console.log("cammera error", error);
             }}
           />
+          {counter <= 5 ? (
+            <View style={styles.overlay}>
+              <Text style={styles.countText}>{counter}</Text>
+            </View>
+          ) : (
+            <View></View>
+          )}
+
           {/* {isVideoRecording && renderVideoRecordIndicator()} */}
           {/* {videoSource && renderVideoPlayer()} */}
           {isPreview && renderCancelPreviewButton()}
@@ -393,6 +408,16 @@ const styles = StyleSheet.create({
     gap: 40,
   },
   flip: {},
+  countText: {
+    fontSize: 120,
+    opacity: 0.7,
+    color: "white",
+    fontWeight: "bold",
+    alignContent: "flex-start",
+    textAlign: "right",
+    marginTop: 20,
+    marginRight: 15,
+  },
   capture: {
     backgroundColor: "#f5f6f5",
     borderRadius: 5,

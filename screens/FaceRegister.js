@@ -4,11 +4,19 @@ import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
 export default function FaceRegister({ navigation }) {
   return (
     <View style={styles.container}>
-      <View style={{ width: 200, height: 200, backgroundColor: "#D9D9D920" }}>
-        {/* <Image
+      <View
+        style={{
+          width: 200,
+          height: 200,
+          backgroundColor: "transparent",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Image
           style={{ width: 100, height: 100 }}
-          source={require("../assets/logo.png")}
-        /> */}
+          source={require("../assets/face.png")}
+        />
       </View>
       <View>
         <Text style={styles.header}>Get started with Face Recognition</Text>
