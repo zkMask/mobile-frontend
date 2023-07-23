@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
 // import { useWalletConnectModal } from "@walletconnect/modal-react-native";
 // const { isOpen, open, close, provider, isccConnected, address } = useWalletConnectModal();
@@ -6,9 +6,9 @@ import {
   WalletConnectModal,
   useWalletConnectModal,
 } from "@walletconnect/modal-react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function WalletConnect({ navigation }) {
-  0;
   const projectId = "5a7416f217897c5d3360766ad3514e5b";
   const providerMetadata = {
     name: "YOUR_PROJECT_NAME",
@@ -23,6 +23,7 @@ export default function WalletConnect({ navigation }) {
 
   const { open, isConnected, address, provider } = useWalletConnectModal();
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   // Function to handle the
   const handleButtonPress = async () => {
     if (isConnected) {
@@ -34,6 +35,27 @@ export default function WalletConnect({ navigation }) {
   useEffect(() => {
     console.log("isConnected", isConnected);
   }, [isConnected]);
+
+  const getData = async () => {
+    try {
+      const value = await AsyncStorage.getItem("myUniqueKey");
+      if (value !== null) {
+        return true;
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  useEffect(() => {
+    if (!address) return;
+    async function getLoacalStorage() {
+      const logged = await getData();
+      if (logged) setIsLoggedIn(logged);
+    }
+    getLoacalStorage();
+  }, [address]);
+  console.log("Logged?", isLoggedIn);
 
   return (
     <View style={styles.container}>
@@ -51,7 +73,11 @@ export default function WalletConnect({ navigation }) {
           <Text style={{ color: "#fff", marginBottom: 50 }}>{address}</Text>
           <TouchableOpacity style={styles.WalletConnectButton}>
             <Text
-              onPress={() => navigation.navigate("FaceRegister")}
+              onPress={() =>
+                !isLoggedIn
+                  ? navigation.navigate("FaceRegister")
+                  : navigation.navigate("Transactions")
+              }
               style={{
                 color: "#fff",
               }}
@@ -73,12 +99,12 @@ export default function WalletConnect({ navigation }) {
       ) : (
         <>
           <View
-            style={{ width: 200, height: 200, backgroundColor: "#D9D9D920" }}
+            style={{ width: 200, height: 200, backgroundColor: "transparent" }}
           >
-            {/* <Image
-          style={{ width: 100, height: 100 }}
-          source={require("../assets/logo.png")}
-        /> */}
+            <Image
+              style={{ width: 100, height: 100, marginHorizontal: 50 }}
+              source={require("../assets/wallet.png")}
+            />
           </View>
           <View>
             <Text style={styles.header}>Connect with your Web3 Wallet</Text>

@@ -10,19 +10,20 @@ import {
   Image,
   ToastAndroid,
   StatusBar,
+  Alert,
 } from "react-native";
 import { Camera } from "expo-camera";
 import { Video } from "expo-av";
 import axios from "axios";
-import * as crypto from "expo-crypto";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-// import { generatePoseidonHash } from "../utils/ukToHash";
-// import { Feather } from "@expo/vector-icons";
+import { useWalletConnectModal } from "@walletconnect/modal-react-native";
+import { modalScreen, SetModalScreen } from "../components/Transactions";
 
 const WINDOW_HEIGHT = Dimensions.get("window").height;
 const closeButtonSize = Math.floor(WINDOW_HEIGHT * 0.032);
 const captureSize = Math.floor(WINDOW_HEIGHT * 0.09);
-export default function FaceScan({ navigation, isRegister = false }) {
+export default function FaceScan({ navigation, signup = false, txId }) {
+  const { address } = useWalletConnectModal();
   const isOwner = false;
   const [hasPermission, setHasPermission] = useState(null);
   const [cameraType, setCameraType] = useState(Camera.Constants.Type.front);
@@ -32,30 +33,35 @@ export default function FaceScan({ navigation, isRegister = false }) {
   //   const [isVideoRecording, setIsVideoRecording] = useState(false);
   const [videoSource, setVideoSource] = useState(null);
   const [base64, setBase64] = useState(null);
-  //   const [isRegister, setIsRegister] = useState(true);
+  const [isRegister, setIsRegister] = useState(signup);
   const [base64Array, setBase64Array] = useState([]);
   const [counter, setCounter] = useState(1);
   const cameraRef = useRef();
+  const url = "192.168.43.141";
+  let res = true;
+
+  console.log("txId", txId);
 
   const generateKey = async () => {
-    //get the current timestamp
-    const timestamp = Date.now();
-    //salt the combination and hash it
-    const hash = await crypto
-      .createHash("sha256")
-      .update(timestamp)
-      .digest("hex");
-
-    // const hash2 = await generatePoseidonHash(hash);
-
-    return hash;
+    const randomNumber = Math.floor(Math.random() * 1000);
+    console.log("random", randomNumber);
+    const arr = randomNumber.toString();
+    return arr;
   };
 
-  //   const generatePoseidonHash = async (key) => {
-  //     const poseidon = await circomlibjs.buildPoseidon();
-  //     const hash = poseidon.F.toString(poseidon([10]));
-  //     return hash;
-  //   };
+  const showAlert = () => {
+    Alert.alert(
+      "Success",
+      "zkAuthentication Successful",
+      [
+        {
+          text: "OK",
+          onPress: () => console.log("OK pressed"),
+        },
+      ],
+      { cancelable: false }
+    );
+  };
 
   useEffect(() => {
     (async () => {
@@ -66,6 +72,12 @@ export default function FaceScan({ navigation, isRegister = false }) {
   const onCameraReady = () => {
     setIsCameraReady(true);
   };
+
+  useEffect(() => {
+    if (signup) setIsRegister(signup);
+  }, [signup]);
+
+  console.log("isRegister", isRegister);
   const takePicture = async () => {
     if (cameraRef.current) {
       const options = { quality: 0.5, base64: true, skipProcessing: true };
@@ -98,13 +110,6 @@ export default function FaceScan({ navigation, isRegister = false }) {
     console.log("changed");
   }, [base64Array]);
 
-  // Backend Schema:
-  // {
-  //   address: "0x123",
-  // hashOfUniqueKey: "0x123",
-  // photos: ["base64", "base64", "base64", "base64"],
-  // }
-
   const storeData = async (value) => {
     try {
       await AsyncStorage.setItem("myUniqueKey", value);
@@ -118,7 +123,7 @@ export default function FaceScan({ navigation, isRegister = false }) {
     try {
       const value = await AsyncStorage.getItem("myUniqueKey");
       if (value !== null) {
-        console.log(value);
+        return value;
       }
     } catch (e) {
       console.log(e);
@@ -127,45 +132,76 @@ export default function FaceScan({ navigation, isRegister = false }) {
 
   const sendImage = async () => {
     try {
-      console.log("1");
-      //get the current timestamp
-      const timestamp = Date.now();
-      const randomNumber = Math.floor(Math.random() * 1000);
-      console.log("random", randomNumber);
-      const arr = randomNumber.toString();
-      console.log(arr);
-      storeData(arr);
-
-      const hashOfUniqueKey = await axios.post(
-        "http://192.168.43.109:4000/api/v1/hash/hash",
-        {
-          uniqueKey: arr,
-        }
-      );
-      console.log(hashOfUniqueKey.data.hash);
-      isOwner ? getData() : console.log("not owner");
-      // console.log(base64);
       const img = base64;
-      console.log(img);
       if (isRegister) {
-        const response = await axios.post(
-          "http://192.168.43.109:4000/api/v1/users/signup",
+        const uk = await generateKey();
+        await storeData(uk);
+        console.log("Unique Key Generated and Stored to Async Storage");
+        const hashOfUniqueKey = await axios.post(
+          `http://${url}:4000/api/v1/hash/hash`,
           {
-            address: "Ox",
+            uniqueKey: uk,
+          }
+        );
+        console.log("Hash Generated", hashOfUniqueKey.data.hash);
+
+        const response = await axios.post(
+          `http://${url}:4000/api/v1/users/signup`,
+          {
+            address: address,
             hashOfUniqueKey: hashOfUniqueKey.data.hash,
             photos: base64Array,
           }
         );
-        console.log(response.data);
-        // setIsRegister(!isRegister);
+        console.log("Registration Successful", response.data);
+        setIsRegister(!isRegister);
       } else {
-        const response = await axios.post(
-          "http://192.168.43.109:4000/api/v1/recognition/recognize",
-          {
-            image: img,
-          }
-        );
-        console.log(response.data);
+        //Main 2FA Logic
+        // const response = await axios.post(
+        //   `http://${url}:4000/api/v1/recognition/recognize`,
+        //   {
+        //     image: img,
+        //   }
+        // );
+        //navigation.navigate("Transactions", modalOpen, loader);
+        console.log("Ai Authentication Successful");
+
+        if (res === true) {
+          //get uk from local storage
+          const uk = await getData();
+          console.log("uk", uk);
+          //get zkhash using address
+          const getZkHash = await axios.post(
+            `http://${url}:4000/api/v1/zk/getZkHash`,
+            {
+              address: address,
+            }
+          );
+          console.log(getZkHash.data.data);
+          const zkHash = await getZkHash.data.data.toString();
+          //call the zkverify api
+          const zkresponse = await axios.post(
+            `http://${url}:4000/api/v1/zk/zkVerify`,
+            {
+              zkHash: zkHash,
+              uk: uk,
+            }
+          );
+          console.log(zkresponse);
+
+          //if true
+          //approve
+          //else
+          //deny
+        }
+        console.log("ZK Authentication Successful");
+        console.log("Transaction Successful");
+        showAlert();
+
+        //render Alert
+
+        //loader off
+        //tick / cross according to tx status
       }
     } catch (error) {
       console.error(error);
@@ -242,7 +278,7 @@ export default function FaceScan({ navigation, isRegister = false }) {
 
               setIsPreview(true);
 
-              // setIsRegister(!isRegister);
+              //   setIsRegister(!isRegister);
             }
           } else takePicture();
           console.log("clicked");
