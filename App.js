@@ -9,10 +9,12 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import FaceScan from "./screens/FaceScan";
 import { useWalletConnectModal } from "@walletconnect/modal-react-native";
+import { useEffect, useState } from "react";
 
 export default function App() {
-  const { isConnected } = useWalletConnectModal();
+  const { isConnected, address } = useWalletConnectModal();
   const Stack = createStackNavigator();
+
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -23,7 +25,6 @@ export default function App() {
         <Stack.Screen name="Transactions" component={Transactions} />
       </Stack.Navigator>
     </NavigationContainer>
-    // <FaceScan />
   );
 }
 

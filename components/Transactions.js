@@ -1,13 +1,307 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
 import PendingCard from "./PendingCard";
 import { ScrollView, Modal } from "react-native";
 import HistoryCard from "./HistoryCard";
+import axios from "axios";
+import { useWalletConnectModal } from "@walletconnect/modal-react-native";
+import { ethers } from "ethers";
+import request, { gql } from "graphql-request";
 
-export default function Transactions() {
+export default function Transactions({
+  navigation,
+  modalScreen = false,
+  modalOpen = false,
+}) {
+  const socketProvider = new ethers.providers.WebSocketProvider(
+    "wss://goerli.infura.io/ws/v3/a4e1ddd82cd94f5baea39f80e2eef866"
+  );
+  const contractAddress = "0x6187EBe7d3D7fe033E3EA060b15a26fBe157fE01";
+  const abi = [
+    {
+      inputs: [],
+      name: "TransactionAlreadyExists",
+      type: "error",
+    },
+    {
+      anonymous: false,
+      inputs: [
+        {
+          indexed: false,
+          internalType: "bool",
+          name: "success",
+          type: "bool",
+        },
+        {
+          indexed: true,
+          internalType: "address",
+          name: "userAddress",
+          type: "address",
+        },
+        {
+          indexed: true,
+          internalType: "uint256",
+          name: "transactionId",
+          type: "uint256",
+        },
+        {
+          indexed: false,
+          internalType: "address",
+          name: "contractAddress",
+          type: "address",
+        },
+        {
+          indexed: false,
+          internalType: "uint256",
+          name: "value",
+          type: "uint256",
+        },
+        {
+          indexed: false,
+          internalType: "bytes4",
+          name: "methodId",
+          type: "bytes4",
+        },
+        {
+          indexed: false,
+          internalType: "uint256",
+          name: "transactionTimestamp",
+          type: "uint256",
+        },
+        {
+          indexed: false,
+          internalType: "uint256",
+          name: "transactionBlockNumber",
+          type: "uint256",
+        },
+      ],
+      name: "AuthenticationCompleted",
+      type: "event",
+    },
+    {
+      anonymous: false,
+      inputs: [
+        {
+          indexed: true,
+          internalType: "uint256",
+          name: "txId",
+          type: "uint256",
+        },
+        {
+          indexed: true,
+          internalType: "address",
+          name: "userAddress",
+          type: "address",
+        },
+        {
+          indexed: true,
+          internalType: "bytes4",
+          name: "methodId",
+          type: "bytes4",
+        },
+        {
+          indexed: false,
+          internalType: "uint256",
+          name: "transactionTimestamp",
+          type: "uint256",
+        },
+        {
+          indexed: false,
+          internalType: "uint256",
+          name: "transactionBlockNumber",
+          type: "uint256",
+        },
+      ],
+      name: "InitiateAuthentication",
+      type: "event",
+    },
+    {
+      inputs: [
+        {
+          internalType: "bool",
+          name: "success",
+          type: "bool",
+        },
+        {
+          internalType: "uint256",
+          name: "txId",
+          type: "uint256",
+        },
+      ],
+      name: "completeAuthentication",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          components: [
+            {
+              internalType: "address",
+              name: "user",
+              type: "address",
+            },
+            {
+              internalType: "bytes4",
+              name: "methodId",
+              type: "bytes4",
+            },
+            {
+              internalType: "bytes32[]",
+              name: "params",
+              type: "bytes32[]",
+            },
+            {
+              internalType: "address",
+              name: "contractAddress",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "value",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "timestamp",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "blockNumber",
+              type: "uint256",
+            },
+          ],
+          internalType: "struct ZkMask.Transaction",
+          name: "txDetails",
+          type: "tuple",
+        },
+      ],
+      name: "initiateAuthentication",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "uint256",
+          name: "",
+          type: "uint256",
+        },
+      ],
+      name: "transactionId",
+      outputs: [
+        {
+          internalType: "address",
+          name: "user",
+          type: "address",
+        },
+        {
+          internalType: "bytes4",
+          name: "methodId",
+          type: "bytes4",
+        },
+        {
+          internalType: "address",
+          name: "contractAddress",
+          type: "address",
+        },
+        {
+          internalType: "uint256",
+          name: "value",
+          type: "uint256",
+        },
+        {
+          internalType: "uint256",
+          name: "timestamp",
+          type: "uint256",
+        },
+        {
+          internalType: "uint256",
+          name: "blockNumber",
+          type: "uint256",
+        },
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "uint256",
+          name: "",
+          type: "uint256",
+        },
+      ],
+      name: "transactionVerified",
+      outputs: [
+        {
+          internalType: "bool",
+          name: "",
+          type: "bool",
+        },
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+  ];
   const [activeTab, setActiveTab] = useState("Pending");
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(modalOpen);
+  const [pendingTx, setPendingTx] = useState([]);
+  const [historyData, setHistoryData] = useState([]);
+  const [modalData, handleModalData] = useState({
+    functionName: "Function Name",
+    details: "Hey Transaction!",
+    txId: 0,
+  });
+
+  const { address } = useWalletConnectModal();
+
+  const ownerAddress = { address };
+  console.log("owner", ownerAddress);
+  const contract = new ethers.Contract(contractAddress, abi, socketProvider);
+
+  const listenForEvent = async () => {
+    try {
+      contract.on(
+        "InitiateAuthentication",
+        (
+          txId,
+          userAddress,
+          methodId,
+          transactionTimestamp,
+          transactionBlockNumber
+        ) => {
+          //   if (userAddress.toString().replace(/^0+/, "r") === ownerAddress) {
+          console.log(
+            txId,
+            userAddress,
+            methodId,
+            transactionTimestamp,
+            transactionBlockNumber
+          );
+          const newArr = [
+            {
+              txId,
+              userAddress,
+              methodId,
+              transactionTimestamp,
+              transactionBlockNumber,
+            },
+          ];
+          setPendingTx((prev) => [...prev, ...newArr]);
+        }
+        // }
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  console.log(pendingTx);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -17,16 +311,54 @@ export default function Transactions() {
     setModalVisible(!modalVisible);
   };
 
+  useEffect(() => {
+    if (!socketProvider) return;
+    listenForEvent();
+
+    return () => {
+      contract.removeAllListeners(); // Remove all event listeners
+    };
+  });
+
+  //   //fetch data for the pending tab
+  //   useEffect(() => {
+  //     if (activeTab !== "Pending") return;
+  //     async function fetchData() {
+  //       await axios.get("http://localhost:3000/transactions").then((res) => {
+  //         console.log(res.data);
+  //       });
+  //     }
+  //     fetchData();
+  //   }, [activeTab]);
+
+  //fetch data for the history tab
+  useEffect(() => {
+    if (activeTab !== "History") return;
+    async function fetchData() {
+      const { authenticationCompleteds } = await request(
+        "https://api.thegraph.com/subgraphs/name/richa-iitr/zkmask",
+        fetchAuthConfirmationData()
+      );
+      setHistoryData(authenticationCompleteds);
+    }
+    fetchData();
+  }, [activeTab]);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.address}>
           <View style={styles.profileContainer}>
-            <View style={styles.pfp}></View>
-            <Text style={styles.headerText}>0x654......5DbD</Text>
-          </View>
-          <View>
-            <Text style={styles.headerText}>Menu</Text>
+            <View style={styles.pfp}>
+              <Image
+                source={"../assets/blockies.png"}
+                style={{ height: 50, width: 50, zIndex: 1 }}
+              />
+            </View>
+            <Text style={styles.headerText}>{`${address.slice(
+              0,
+              7
+            )}...${address.slice(-10, -1)}`}</Text>
           </View>
         </View>
         <View style={styles.address}>
@@ -49,17 +381,34 @@ export default function Transactions() {
           </TouchableOpacity>
         </View>
         <ScrollView>
-          <View style={styles.notifText}>
-            <Text style={{ color: "#A278F5" }}>
-              You have 32 pending notifications.
-            </Text>
-          </View>
           <View>
-            {activeTab === "Pending" ? (
-              <PendingCard onConfirm={handleModal} />
-            ) : (
-              <HistoryCard />
-            )}
+            {activeTab === "Pending"
+              ? //   <PendingCard onConfirm={handleModal} />
+                pendingTx.map((data) => {
+                  return (
+                    <PendingCard
+                      onConfirm={() => {
+                        handleModal();
+                        handleModalData({
+                          functionName: data.methodId,
+                          details: "Hey Transaction!",
+                          txId: data.txId,
+                        });
+                      }}
+                      functionName={data.methodId}
+                      details={"Hey Transaction!"}
+                      txId={data.txId}
+                    />
+                  );
+                })
+              : historyData.map((data) => (
+                  <HistoryCard
+                    key={data.id}
+                    name={"Transfer Tokens"}
+                    description={"Send ETH to reciepent"}
+                    success={data.success}
+                  />
+                ))}
           </View>
         </ScrollView>
       </View>
@@ -69,26 +418,53 @@ export default function Transactions() {
         visible={modalVisible}
         onRequestClose={handleModal}
       >
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalHeaderText}>Function Name</Text>
-            <Text style={styles.modalText}>
-              Are you sure you want to authenticate this transaction?
-            </Text>
-            <Image
-              source={require("../assets/mask.png")}
-              style={{ width: 54, height: 54, margin: 35 }}
-            />
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.buttonGreen}>
-                <Text style={styles.buttonTextGreen}>Scan face to proceed</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.buttonRed} onPress={handleModal}>
-                <Text style={styles.buttonTextRed}>Cancel</Text>
-              </TouchableOpacity>
+        {!modalScreen ? (
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <Text style={styles.modalHeaderText}>
+                {modalData.functionName}
+              </Text>
+              <Text style={styles.modalText}>
+                Are you sure you want to authenticate this transaction?
+              </Text>
+              <Image
+                source={require("../assets/mask.png")}
+                style={{ width: 54, height: 54, margin: 35 }}
+              />
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={styles.buttonGreen}
+                  onPress={() =>
+                    navigation.navigate(
+                      "FaceScan",
+                      { signup: false },
+                      { txId: modalData.txId }
+                    )
+                  }
+                >
+                  <Text style={styles.buttonTextGreen}>
+                    Scan face to proceed
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.buttonRed}
+                  onPress={handleModal}
+                >
+                  <Text style={styles.buttonTextRed}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        ) : (
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <Text style={styles.modalHeaderText}>Transaction Successful</Text>
+              <Text style={styles.modalText}>
+                You have successfully authenticated the transaction.
+              </Text>
+            </View>
+          </View>
+        )}
       </Modal>
     </View>
   );
@@ -132,7 +508,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 50,
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff50",
     marginRight: 10,
   },
   profileContainer: {
@@ -258,3 +634,22 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+
+function fetchAuthConfirmationData() {
+  return gql`
+    query Query {
+      authenticationCompleteds {
+        id
+        success
+        user
+        txId
+        contract
+        methodId
+        transactionHash
+        txBlockNumber
+        txTimestamp
+        value
+      }
+    }
+  `;
+}

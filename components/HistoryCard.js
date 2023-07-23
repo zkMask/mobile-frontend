@@ -2,23 +2,23 @@ import React from "react";
 
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 
-export default function HistoryCard({ success = true }) {
+export default function HistoryCard({ name, description, date, success }) {
   return (
     <View style={success ? styles.containerTint : styles.container}>
       <View style={styles.header}>
-        <Text style={styles.header}>Function Name</Text>
+        <Text style={styles.header}>{name}</Text>
       </View>
       <View style={styles.body}>
-        <Text style={{ color: "#fff" }}>Description</Text>
-        <Text style={{ color: "#fff" }}>Date</Text>
+        <Text style={{ color: "#fff" }}>{description}</Text>
+        <Text style={{ color: "#fff" }}>{date}</Text>
         <Text
           style={
             success
               ? { color: "#00DBA1", marginTop: 24 }
-              : { color: "#D65D800", marginTop: 24 }
+              : { color: "#E21717", marginTop: 24 }
           }
         >
-          Successful
+          {success ? "Successful" : "Failed"}
         </Text>
       </View>
     </View>

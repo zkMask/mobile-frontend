@@ -24,7 +24,7 @@ export default function FaceRegister({ navigation }) {
       <View>
         <TouchableOpacity
           style={styles.metamaskConnectButton}
-          onPress={() => navigation.navigate("FaceScan")}
+          onPress={() => navigation.navigate("FaceScan", { isRegister: true })}
         >
           <Text
             style={{

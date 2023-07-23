@@ -2,17 +2,23 @@ import React from "react";
 import { useState } from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 
-export default function PendingCard({ tint = true, onConfirm, onDecline }) {
+export default function PendingCard({
+  tint = true,
+  onConfirm,
+  onDecline,
+  functionName,
+  details,
+}) {
   const handleOnConfirm = () => {
     onConfirm();
   };
   return (
     <View style={tint ? styles.containerTint : styles.container}>
       <View style={styles.header}>
-        <Text style={styles.header}>Function Name</Text>
+        <Text style={styles.header}>{functionName}</Text>
       </View>
       <View style={styles.body}>
-        <Text style={{ color: "#fff" }}>Description</Text>
+        <Text style={{ color: "#fff" }}>{details}</Text>
       </View>
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.buttonGreen} onPress={handleOnConfirm}>
