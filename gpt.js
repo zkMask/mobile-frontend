@@ -12,11 +12,7 @@ const app = express();
   const openai = new OpenAIApi(configuration);
 
   if (!configuration.apiKey) {
-    res.status(500).json({
-      error: {
-        message: "OpenAI API key not configured, please follow instructions in README.md",
-      }
-    });
+   
     return ;
   }
 
