@@ -4,8 +4,6 @@ import express from 'express';
 require('dotenv').config()
 const app = express();
 
-
- 
   const configuration = new Configuration({
     organisation : process.env.ORGANISATION,
     apiKey: process.env.OPENAI_API_KEY
@@ -55,15 +53,7 @@ const app = express();
 
   console.log(completion.data.choices[0].messages);
 
-    // Parsing the response
-//   const ret = await info.json();
-// console.log("##########################################################################################");
-// console.log(ret);
-// console.log("##########################################################################################");
-
-//   return {
-//     insights: ret,
-//   };
+ 
 
 
 
